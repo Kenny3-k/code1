@@ -1,0 +1,60 @@
+{%extends "base.html"%}
+{%block content%}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+</head>
+<body>
+    <div class="hotel-booking">
+        <h2>Book Hotel Accomodation</h2>
+        <form method="post" action="/hotel_booking">
+            <input type="date" name="check_in" required>
+            <input type="date" name="check_out" required>
+            <select name="room">
+                <option>Standard</option> 
+                <option>Family</option>
+                <option>Couple</option>
+                <option>VIP</option>
+            </select>
+            <button type="submit">Calculate and Book</button>
+        </form>
+
+        {% if total_price%}
+        <hr>
+        <p><strong>Room:</strong>{{room_type}}</p>
+        <p><strong>Nights:</strong>{{nights}}</p>
+        <p><strong>Total Price:</strong>£{{total_price}}</p>
+
+        <button id="checkout-button">Pay with Card</button>
+
+        <script src="https://js.stripe.com/v3/"></script>
+
+        <script>
+            const stripe= Stripe("pk_test_51SwkEZ54EOFwKtOTKdWWHsHnGFxMzkb1pb00Rlx5t6FctI0mg6W5t3hDuoIlTacOD5L4adwBZ5KQeXBiTZEN1jjn00sAXpLF7l")
+            document.getElementById("checkout-button").addEventListener("click", function(){
+                fetch("/create_checkout_session", {
+                    method: "POST",
+                    headers:{
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        amount: {{stripe_amount}},
+                        description: "{{description}}"
+                    })
+                })
+                .then(res => res.json())
+                .then(data => stripe.redirectToCheckout({sessionId: data.id}));
+            });
+        </script>
+        {%endif%}
+    </div>
+</body>
+{% if error %}
+<p style="color:red">{{error}}</p>
+{% endif %}
+{% endblock %}
+</html>
